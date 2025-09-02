@@ -61,7 +61,7 @@ if isnan(df2(1)),
         
         % If rank(C) > 1, i.e., df1 > 1, this is R^2, so
         % use a probit transformation.
-        Z = -erfcinv(2*G)*sqrt(2); %Z = norminv(G);
+        Z = -safe_erfcinv(2*G)*sqrt(2); %Z = norminv(G);
         
     end
 
@@ -76,8 +76,8 @@ else
         idx = G > 0;
         %Z( idx) = -erfinv(2*palm_gcdf(-G( idx),1,df2( idx))-1)*sqrt(2);
         %Z(~idx) =  erfinv(2*palm_gcdf( G(~idx),1,df2(~idx))-1)*sqrt(2);
-        Z( idx) =  erfcinv(2*palm_gcdf(-G( idx),1,df2( idx)))*sqrt(2);
-        Z(~idx) = -erfcinv(2*palm_gcdf( G(~idx),1,df2(~idx)))*sqrt(2);
+        Z( idx) =  safe_erfcinv(2*palm_gcdf(-G( idx),1,df2( idx)))*sqrt(2);
+        Z(~idx) = -safe_erfcinv(2*palm_gcdf( G(~idx),1,df2(~idx)))*sqrt(2);
         
     elseif df1 == 0,
         
@@ -101,8 +101,16 @@ else
         % Convert to Z through a Beta incomplete function
         %Z( idx) = -erfinv(2*betainc(1-B( idx),b( idx),a)-1)*sqrt(2);
         %Z(~idx) =  erfinv(2*betainc(  B(~idx),a,b(~idx))-1)*sqrt(2);
-        Z( idx) =  erfcinv(2*betainc(1-B( idx),b( idx),a))*sqrt(2);
-        Z(~idx) = -erfcinv(2*betainc(  B(~idx),a,b(~idx)))*sqrt(2);
+        Z( idx) =  safe_erfcinv(2*betainc(1-B( idx),b( idx),a))*sqrt(2);
+        Z(~idx) = -safe_erfcinv(2*betainc(  B(~idx),a,b(~idx)))*sqrt(2);
         
     end
+end
+
+end
+
+function y = safe_erfcinv(x)
+    tiny = realmin('double');           % ~2.22e-308
+    x = min(max(x, 2*tiny), 2 - 2*tiny);% 夹到 (0,2) 开区间
+    y = erfcinv(x);
 end
